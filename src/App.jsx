@@ -1,23 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const App = () => {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [transactions, setTransactions] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
+    setErrorMessage(""); // Clear error message when user changes input
   };
 
   const fetchData = async () => {
+    if (isNaN(inputValue) || inputValue === "0" || inputValue.trim() === "") {
+      setTransactions([]);
+      setErrorMessage("Please enter a correct transaction ID");
+      return;
+    }
+
     try {
-      const response = await fetch('/transactions.json');
+      const response = await fetch("/transactions.json");
       const data = await response.json();
-      const filteredData = data.filter((transaction) =>
-        transaction.id.toString() === inputValue
+      const filteredData = data.filter(
+        (transaction) => transaction.id.toString() === inputValue
       );
+
+      if (filteredData.length === 0) {
+        setErrorMessage("Transaction does not exist");
+      } else {
+        setErrorMessage("");
+      }
       setTransactions(filteredData);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
+      setErrorMessage("Error fetching data");
     }
   };
 
@@ -39,6 +54,7 @@ const App = () => {
           Fetch
         </button>
       </div>
+      {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
       {transactions.length > 0 && (
         <table className="min-w-full bg-white border border-gray-200">
           <thead>
